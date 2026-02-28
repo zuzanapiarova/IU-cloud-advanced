@@ -2,6 +2,7 @@
 .terraform.*
 .terraform.*
 .terraform/*/*
+terraform.*
 
 # API
 app/.env
