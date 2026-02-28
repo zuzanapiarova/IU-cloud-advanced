@@ -1,0 +1,14 @@
+.env 
+.terraform.*
+.terraform.*
+.terraform/*/*
+
+# API
+app/.env
+app/rds-ca.pem
+app/node_modules
+
+# frontend
+frontend/.env
+dist/
+frontend/node_modules/
