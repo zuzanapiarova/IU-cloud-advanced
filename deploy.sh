@@ -2,10 +2,10 @@
 
 set -e
 
-# make sure the aws account has iam role AmazonEC2ContainerRegistryFullAccess
-# if not logged in with aws cli fail
-
-# check docker and aws utility are installed
+# 0. terraform, docker, npm and aws utilities must be installed
+for cmd in aws terraform docker npm; do
+  command -v $cmd &>/dev/null || { echo "ERROR: $cmd is not installed or not in PATH"; exit 1; }
+done
 
 echo "========> Starting deployment..."
 
@@ -21,11 +21,11 @@ IMAGE_NAME=$(terraform output -raw image_name)
 ECR_URL=$(terraform output -raw ecr_repository_url)
 CLUSTER_NAME=$(terraform output -raw ecs_cluster_name)
 SERVICE_NAME=$(terraform output -raw ecs_service_name)
-CLOUDFRONT_ENTRYPOINT=$(terraform output -raw cloudfront_entrypoint)
+CLOUDFRONT_ENTRYPOINT=$(terraform output -raw cloudfront_domain)
 FRONTEND_BUCKET_URL=$(terraform output -raw frontend_bucket_url)
 RDS_MASTER_PASSWORD=$(terraform output -raw rds_master_password)
 
-# 2. Build Docker image nd provision it to the ECR
+# 2. Build Docker image and provision it to the ECR
 
 echo "========> Building and publishing the app image..."
 
@@ -40,7 +40,7 @@ aws ecr get-login-password --region "$REGION" \
 
 # Tag image
 echo "====> Tagging image..."
-docker tag "$IMAGE_NAME":latest "$ECR_URL":latest
+docker tag "$IMAGE_NAME:latest" "$ECR_URL:latest"
 
 # Push image
 echo "====> Pushing image..."
@@ -52,13 +52,11 @@ aws ecs update-service \
   --cluster "$CLUSTER_NAME" \
   --service "$SERVICE_NAME" \
   --force-new-deployment \
-  --region "$REGION"
-
-echo "Deployment complete! Connect to $CLOUDFRONT_ENTRYPOINT"
+  --region "$REGION" \
+  --no-cli-pager
 
 # 3. Build and provision the frontend static files to s3
 cd ./frontend 
-# echo API_URL="https://$CLOUDFRONT_ENTRYPOINT" > .env # MAYBE wihout the https?
 npm install
 npm run build 
 
@@ -69,4 +67,4 @@ aws s3 sync \
   --sse AES256 \
   --delete
 
-echo "Deployment complete! Connect to https://$CLOUDFRONT_ENTRYPOINT"
+echo "Deployment complete! Container is being updated with the new image. This can take a couple minutes. Connect to https://$CLOUDFRONT_ENTRYPOINT"

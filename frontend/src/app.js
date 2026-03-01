@@ -19,7 +19,7 @@ form.addEventListener('submit', async (event) => {
             incoming: String(incoming)
           });
       
-        const response = await fetch(`/api/process_payment?${params.toString()}`)
+        const response = await fetch(`/api/process_payment?${params.toString()}`) // same domain, no need to input api url
         
         if (response.ok) {
             const data = await response.json()

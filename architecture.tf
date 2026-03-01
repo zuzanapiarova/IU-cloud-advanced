@@ -295,14 +295,6 @@ resource "aws_security_group" "rds_sg" {
   description = "RDS SG"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description     = "Postgres from ECS"
-    from_port       = var.db_port
-    to_port         = var.db_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
-  }
-
   # no egress rules -> Terraform will allow all unless override
   tags = {
     Name = "${var.name_prefix}-rds-sg"
