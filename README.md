@@ -24,8 +24,20 @@ Mock frontend and backend were created. Frontend is built into the ./dist folder
 
 ### Replicate the infrastructure with Terraform
 
-1. AWS, Docker, terraform, and npm utilities are required. User must also log into the aws via cli using heir credentials beforehand.
+1. AWS, Docker, terraform, and npm utilities are required. User must also log into the aws via cli using heir credentials beforehand. User must have proper permissions to manage aws resources. Find the required IAM policy in `/aws-iam-policy.json` and apply it using following commands:
+```
+# Create the policy
+aws iam create-policy \
+  --policy-name iu-finguard-deployer-policy \
+  --policy-document file://policy.json \
+  --region eu-central-1
 
-2. Run the ./deploy.sh script. It deploys the cloud services, builds the frontend and backend and pushes the artifacts to the services. 
+# Attach to your IAM user
+aws iam attach-user-policy \
+  --user-name <your-iam-username> \
+  --policy-arn arn:aws:iam::739275479418:policy/iu-finguard-deployer-policy
+```
 
-3. Finally, the endpoint on which to test the connection is output.
+2. Run the ./deploy.sh script. It deploys the cloud services, builds the frontend and backend and pushes the artifacts to the services. Uploading the container image and updating ECS with the new task can take up to 5 minutes after the script finishes execution. 
+
+3. Finally, the endpoint on which to test the connection is output. 
